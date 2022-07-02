@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_df632c89_c77c_4a74_8a20_fb40ba93b11c_Output_Variables_page = Any
+

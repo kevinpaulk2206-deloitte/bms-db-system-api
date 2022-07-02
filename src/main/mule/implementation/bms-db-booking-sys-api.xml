@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="getBookingByIdFlow" doc:id="6373ba01-108d-4afa-851a-0e819fc3627d" >
+		<logger level="INFO" doc:name="INFO: Fetching Booking Details" doc:id="0cad9918-94e4-49e2-9da0-51d550a67201" message="Fetching Booking Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="66ef0f7c-83be-4f13-a864-18705940c38f" >
+			<db:select doc:name="Get Booking Details By Booking Id" doc:id="3a9db5cc-14e2-4f2c-8154-2cc15a404bc9" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from booking where Booking_Id=:bookingId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	bookingId: attributes.queryParams.bookingId
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Booking Details" doc:id="07181497-46d2-4050-9923-f75414e0be47" message="Fetched Booking Details"/>
+		<ee:transform doc:name="Java to Json" doc:id="40429f8e-1c85-4db0-a71f-bcd4b0fc0fc1">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="postBookingFlow" doc:id="334c030c-7be9-4b55-ac31-58142793961a" >
+		<logger level="INFO" doc:name="INFO: Inserting Booking Details" doc:id="33c97ab5-05ea-47d1-8247-d67a488edbc0" message="Inserting Booking Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="d1e463bf-e497-4144-a052-0f926063e7dd" >
+			<db:insert doc:name=" Insert Booking Details" doc:id="4bc1de89-e9ef-41a6-bb00-a7d0aed061ea" config-ref="Database_Config" autoGenerateKeys="true" target="bookingInsertOutput">
+			<db:sql><![CDATA[insert into booking(User_Id ,Show_Id ,Coupon_Id ,DATE_TIME ,Num_Tickets ,Actual_Price ,Discounted_Price) 
+values (:userId,:showId,:couponId,:dateTime,:numTickets,:actualPrice,:discountedPrice)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+  showId: payload.showId,
+  userId: payload.userId,
+  dateTime: payload.dateTime,
+  couponId: payload.couponId,
+  numTickets: payload.numberOfTickets,
+  actualPrice: payload.actualPrice,
+  discountedPrice: payload.discountedPrice
+  }]]]></db:input-parameters>
+		</db:insert>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Inserted Booking Details" doc:id="45bae00d-1b07-4377-8f3a-baca01525b65" message="Inserted Booking Details"/>
+		<ee:transform doc:name="Response with Booking Id" doc:id="4f41ffc4-dea6-4f70-82e0-c82f1723c5c9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "booking is successfully done",
+	Booking_Id: vars.bookingInsertOutput.generatedKeys.BOOKING_ID
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="postInterestFlow" doc:id="1321ba04-d10b-439f-90e2-074a919c5656" >
+		<logger level="INFO" doc:name="INFO: Inserting Interest Details" doc:id="6d78fa06-20aa-4a82-b37a-54748962ebba" message="Inserting Interest Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="dc8eb5a2-4548-423b-9e02-891d0e88b914" >
+			<db:insert doc:name="Insert Interest Details Of User" doc:id="2a457b76-4630-49e6-aacc-f0df1cd721db" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into interest(User_Id ,Genre) values (:userId,:genre)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: payload.userId,
+	genre: payload.Genre
+}]]]></db:input-parameters>
+		</db:insert>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Inserted Interest Details" doc:id="b9f17d6d-efe1-43b8-bb50-1dd1b7ac1f46" message="Inserted Interest Details"/>
+		<ee:transform doc:name="Insert Successful Response" doc:id="31bf0f9d-1fda-40b8-bdee-20ba37583c6c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "interest added successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getIntrestByUserIdFlow" doc:id="d7b70496-74d3-46b6-a5c8-ded2e612d967" >
+		<logger level="INFO" doc:name="INFO: Fetching Interest Details" doc:id="2c4fe85b-2480-454c-9fbb-a8c46b3e774c" message="Fetching Interest Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="a626dbc9-67c2-4c75-b40b-ea929c4e76f7" >
+			<db:select doc:name="Get Interest Of User" doc:id="5cc4ec51-f1ca-4073-a129-ce90eb17bd9c" config-ref="Database_Config">
+			<db:sql><![CDATA[select distinct Genre from interest where User_Id=:userId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.User_Id
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Interest Details" doc:id="ac41e77a-25c8-4e88-b51f-22eefdee8349" message="Fetched Interest Details"/>
+		<ee:transform doc:name="Java to Json" doc:id="5c73f2cc-cf1c-46e5-91fa-abf023d8a2a5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

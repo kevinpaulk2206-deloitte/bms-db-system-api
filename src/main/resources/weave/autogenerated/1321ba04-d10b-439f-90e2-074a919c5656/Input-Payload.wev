@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_1321ba04_d10b_439f_90e2_074a919c5656_Input_Payload = {
+  Genre: String, 
+  userId: Number, 
+  _?: Any
+}
+

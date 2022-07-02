@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	
+	
+	<flow name="createTablesFlow" doc:id="4eeb34b6-e421-4aa6-8fef-ab4d4398a70c" >
+		<http:listener doc:name="Get /create" doc:id="647ec3c7-3ea1-4d7e-abef-becc41baa959" config-ref="HTTP_Listener_config" path="/create"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="ebf45b34-3ba5-4638-a4f7-85063f9b437c" >
+			<db:execute-ddl doc:name="Create Admin Table" doc:id="7c4da231-0f51-444a-a1e7-451b3755b109" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE admin(
+Admin_Id IDENTITY,
+Admin_Name varchar(35),
+Password varchar(35),
+Admin_mail varchar(35),
+Phone_No varchar(15)
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="2911ed33-6a5f-407c-bde6-f5677abed66e" >
+			<db:execute-ddl doc:name="Create Users Table" doc:id="9976b5c9-8e39-4964-996e-38efa07a79f4" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE users(
+User_Id IDENTITY,
+Name varchar(35),
+Password varchar(35),
+Email varchar(35),
+Gender varchar(10),
+Address varchar(50),
+Phone_No varchar(15)
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="ffa5f7eb-f7d2-4c2d-a100-ac6ceaf054fc" >
+			<db:execute-ddl doc:name="Create Organizer Table" doc:id="732810db-163c-45a1-8d7f-fc23b0d9a760" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE organizer(
+Org_Id IDENTITY,
+Org_Name varchar(35),
+Password varchar(35),
+Email varchar(35),
+Phone_No varchar(15),
+Address varchar(50)
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="21c67bb7-775e-46be-8d9f-13ad6179ad6e" >
+			<db:execute-ddl doc:name="Create Interest Table" doc:id="2d77c4db-0d69-49ba-a011-4a06ede2fbb5" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE interest(
+User_Id integer,
+Genre varchar(25)
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="da76f943-50a1-49e1-9878-c769d7c0cb44" >
+			<db:execute-ddl doc:name="Create Show Table" doc:id="905fecf5-3a86-4b5b-8f7e-4da54c9205e0" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE show(
+Show_Id IDENTITY,
+Show_Name varchar(50),
+Show_Date DATE,
+Show_Start_Time TIME,
+Show_End_Time TIME,
+Price FLOAT,
+Seats INT,
+Genre varchar(25),
+Active_Date DATE,
+Address_Line_1 varchar(50),
+Address_Line_2 varchar(50),
+City varchar(25),
+State varchar(25),
+Country varchar(25),
+Pincode INT,
+Org_Id INT,
+foreign key (Org_Id) references organizer(Org_Id) ON DELETE SET NULL
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="cd225749-bd74-4608-8720-606b7971d813" >
+			<db:execute-ddl doc:name="Create Coupon Table" doc:id="b3329a09-ccc2-4d1e-a854-70f6d82ce05a" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE coupon(
+Coupon_Id IDENTITY,
+Show_Id INT,
+Discount_percentage FLOAT,
+Num_seats INT,
+foreign key (Show_Id) references show(Show_Id) ON DELETE CASCADE
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="d10e1ae4-7037-4354-b8a9-d4681a63b8b4" >
+			<db:execute-ddl doc:name="Create Booking Table" doc:id="0cd33ede-ce93-4587-a6df-5353f52fd526" config-ref="Database_Config">
+			<db:sql><![CDATA[CREATE TABLE booking(
+Booking_Id IDENTITY,
+User_Id INT,
+Show_Id INT,
+Coupon_Id INT,
+DATE_TIME DATETIME,
+Num_Tickets INT,
+Actual_Price FLOAT,
+Discounted_Price FLOAT,
+foreign key (User_Id) references users(User_Id) ON DELETE CASCADE,
+foreign key (Show_Id) references show(Show_Id) ON DELETE CASCADE,
+foreign key (Coupon_Id) references coupon(Coupon_Id) ON DELETE SET NULL
+)]]></db:sql>
+		</db:execute-ddl>
+		</until-successful>
+		<ee:transform doc:name="Tables Created Successful Response" doc:id="2344880d-5278-4082-a3f5-5db560a58e60" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:"tables created successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="insertRecordsFlow" doc:id="2d87b81e-a4d6-40a2-a815-2220b6bb3d78" >
+		<http:listener doc:name="Get /insert" doc:id="5326588c-bcb1-43cf-b9b9-201eeb383255" config-ref="HTTP_Listener_config" path="/insert"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="0cb103bd-d1c7-4ed3-b531-3b643b36cdec" >
+			<db:insert doc:name="Insert Admin Details" doc:id="46b86086-48b0-4930-93cc-9adebdd88557" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into admin(admin_name,Password, admin_mail,Phone_No) values( 'Navitha A', 'Sunrise.123', 'navia@deloitte.com','+916362022880'),('shwetha T', 'Sunrise.123','shwetht@deloitte.com','+916362022880'),('Kevin Paul', 'Sunrise.123','kpaulk@deloitte.com','+916362022880'),('Arshad', 'Sunrise.123','moarshad@deloitte.com','+916362022880')]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="5ad0d3c8-b807-49d4-a466-6d18e6a3e431" >
+			<db:insert doc:name="Insert Users Details" doc:id="24b11940-43f9-4168-ab72-ff81ce394ae7" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into users(
+Name ,
+Password ,
+Email ,
+Gender ,
+Address ,
+Phone_No
+)
+values
+('Naya Pandhey', 'Sunrise.123', 'naya@gmail.com', 'Female', 'Bell road Bangalore','+916362022880'),
+('kabir Das', 'Sunrise.123' ,'kabir@gmail.com', 'Male', 'Chakala Road Mumbai','+916362022880'),
+('Ananya Singh', 'Sunrise.123' ,'ananya@gmail.com', 'Female', 'Hare Street Kolkata','+916362022880'),
+('Kanan Krishna', 'Sunrise.123', 'kanan@gmail.com', 'Male', 'Community center Delhi','+916362022880'),
+('Druv Bodhi', 'Sunrise.123', 'Druv@gmail.com', 'Male', 'Khadia Cross Road Ahmedabad','+916362022880')]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="088f59ca-5935-40e8-b4ac-9d2606bafa0b" >
+			<db:insert doc:name="Insert Organizer Details" doc:id="7a723cf3-1246-4875-b7bd-438d1a2283c2" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into organizer(
+Org_Name ,
+Password ,
+Email ,
+Address ,
+Phone_No 
+) values
+('Ritu Raja', 'Sunrise.123', 'ritu@gmail.com','Jogeshwari Mumbai','+916362022880'),
+('Neel Sampath', 'Sunrise.123', 'neel@gmail.com', 'Mathura Road Main Road Delhi','+916362022880'),
+('Devansh Balakrishnan', 'Sunrise.123', 'Devansh@gmail.com', 'Cathedral Road Kolkata','+916362022880'),
+('Charu Gole', 'Sunrise.123', 'charu@gmail.com', 'Malleshwaram Bangalore','+916362022880'),
+('Sohel Dave', 'Sunrise.123', 'sohel@gmail.com', 'Nariman Point Ahmedabad','+916362022880')]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="6224676b-43f6-431f-9af2-fd6f28d18634" >
+			<db:insert doc:name="Insert Interest Details" doc:id="67130c5e-0cc3-4af3-8eb2-daa4cbd9b34f" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into interest values(1,'Horror'),(2,'Fiction'),(3,'Action'),(4,'Comedy'),(5,'Horror')]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="fcfd4283-cfd7-42ae-b2a3-2f8ec74a8070" >
+			<db:insert doc:name="Insert Show Details" doc:id="787e1852-a767-4332-9e15-ec25784340e9" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into show(
+Show_Name ,
+Show_Date ,
+Show_Start_Time ,
+SHOW_END_TIME ,
+Price ,
+Seats ,
+Genre ,
+Active_Date ,
+Address_Line_1 ,
+Address_Line_2 ,
+City ,
+State ,
+Country ,
+Pincode ,
+Org_Id
+) values
+('KGF 2','2022-06-17','13:00','14:00',740.24, 200, 'Action','2022-06-13', 'Doddabommasandra', 'Vidyaranyapura','Bangalore','Karnataka','India',560097,4),
+('RRR','2022-06-15','9:00','13:00',700.14, 150, 'Action','2022-06-11', 'Pawaskar road', 'Dahisar Jogeshwari','Mumbai','Maharashtra','India',460090,1),
+('Charlie 777','2022-06-18','14:00','13:00',440.24, 200, 'Comedy','2022-06-11', '8th cross', 'Malleswaram','Bangalore','Karnataka','India',560085,4),
+('CBI 5','2022-06-20','11:00','13:00',500.24, 180, 'Fiction','2022-06-15', 'Near Marks school', 'Janak Puri','Delhi','Delhi','India',110058,2),
+('The Whole Truth','2022-06-13','13:00','13:00',640.84, 175, 'Horror','2022-06-09', 'Gokhel Road', 'Garia Market','Kolkata','West Bengal','India',700020,3),
+('Choose or Die','2022-06-10','16:00','13:00',780.24, 200, 'Horror','2022-06-07', 'Adithya Complex', 'Mithakhali','Ahmedabad','Gujarat','India',380006,5)]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="049357cb-2894-4489-b139-f27465b13b5d" >
+			<db:insert doc:name="Insert Coupon Details" doc:id="d9f469e5-eee6-4584-8219-4331024c65ea" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into coupon(
+Show_Id ,
+Discount_percentage ,
+Num_seats
+) values
+(2, 12.00,10),
+(4, 5.00,20),
+(5, 7.00,20),
+(3, 8.35,15),
+(1, 10.00,12),
+(6, 7.00,20)]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="c7af97b5-fd3f-47cf-92fe-36a7a5d0ac82" >
+			<db:insert doc:name="Insert Booking Details" doc:id="59fb1c44-b47d-44fa-967c-38fd261704a9" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into booking(
+User_Id ,
+Show_Id ,
+Coupon_Id ,
+Date_Time ,
+Num_Tickets ,
+Actual_Price ,
+Discounted_Price
+) values
+(1,5,3,'2022-06-13 13:00',4,2563.36, 2383.92),
+(5,6,6,'2022-06-10 16:00',7,5461.68, 5079.36),
+(4,3,4,'2022-06-18 14:00',3,1320.72, 1210.43),
+(2,4,2,'2022-06-20 11:00',2,1000.48, 950.45),
+(3,1,5,'2022-06-17 13:00',5,3701.20, 3331.08)]]></db:sql>
+		</db:insert>
+		</until-successful>
+		<ee:transform doc:name="Records Insert Successful Response" doc:id="a6947324-0bc6-41a5-9554-3ef47f0d8a98" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message:"records inserted successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="db-setupFlow2" doc:id="3b09e55d-bd35-4c67-9a4d-54bdbf815c16" >
+		<http:listener doc:name="Listener" doc:id="4ed060d2-ddda-4930-a725-57ccebdc13c3" config-ref="HTTP_Listener_config" path="/select"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="4503641d-b365-4b3f-9dd8-ebc242b21896" >
+			<db:select doc:name="Select" doc:id="0f00c57a-dacf-4848-b10a-df93928b59ed" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from booking where Show_Id=2]]></db:sql>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="5b79de2d-d4e2-485f-9e0c-75ffe120b55d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

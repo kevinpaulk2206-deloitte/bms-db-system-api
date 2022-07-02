@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="postCouponsFlow" doc:id="cdfb3c4e-a007-436c-a624-e7fd5d77cabb" >
+		<logger level="INFO" doc:name="INFO: Inserting Coupons" doc:id="0d19cf9c-469f-4d5a-9225-c3f36c9981cd" message="Inserting Coupons"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="742f13b1-a01d-4c49-9487-d63b62e11be2" >
+			<db:bulk-insert doc:name="Bulk Insert Coupons With Show Id" doc:id="b7b533ef-bec1-4dfb-8cde-acaf53751048" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into coupon(
+Show_Id ,
+Discount_percentage ,
+Num_seats
+) values
+(:Show_Id, :Discount_Percentage, :Top_Users)]]></db:sql>
+		</db:bulk-insert>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Inserted Coupons" doc:id="f0d10774-c637-459b-b219-17c3137dc04e" message="Inserted Coupons"/>
+		<ee:transform doc:name="Bulk Insert Successful Response" doc:id="1243a5d4-a0f1-43e1-af58-28a571a62239">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: 'coupons added successfully'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getAllCouponsByShowIdFlow" doc:id="b3e99206-7185-4902-be6f-8ce421cc2e60" >
+		<logger level="INFO" doc:name="INFO: Fetching All Coupons" doc:id="bb93a67b-7c14-4608-bd82-a321fac657c8" message="Fetching All Coupons"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="0e081b85-bdee-481c-82a4-2c71366726ed" >
+			<db:select doc:name="Get All Coupons By Show Id" doc:id="6262145e-4297-4141-971e-7ecaf3345408" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from coupon where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: attributes.queryParams.Show_Id
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched All Coupons" doc:id="a1a4baec-8078-4812-8399-0fae5e4dc059" message="Fetched All Coupons"/>
+		<ee:transform doc:name="Java to Json" doc:id="51768c25-85a5-4579-b8de-5c9adaa69403">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="deleteCouponsByShowIdFlow" doc:id="5fa97ae4-efea-427d-8c51-3c650b2aba87" >
+		<logger level="INFO" doc:name="INFO: Deleting Coupons" doc:id="ab5790d7-621e-4101-845b-9d1e8cf61904" message="Deleting Coupons"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="f10f3de9-6f91-42b0-a44e-7e91c1cc2404" >
+			<db:delete doc:name="Delete Coupons By Show Id" doc:id="07bb5772-e58d-4c4c-9685-a787414d4709" config-ref="Database_Config">
+			<db:sql><![CDATA[delete from coupon where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: attributes.queryParams.Show_Id
+}]]]></db:input-parameters>
+		</db:delete>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Deleted Coupons" doc:id="4c5bb10f-ba68-4e84-95d3-44c1e23e6a30" message="Deleted Coupons"/>
+		<ee:transform doc:name="Delete Successful Response" doc:id="4c4f7bc4-b2cf-449d-a98a-7ec22a369ce4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "coupons deleted successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

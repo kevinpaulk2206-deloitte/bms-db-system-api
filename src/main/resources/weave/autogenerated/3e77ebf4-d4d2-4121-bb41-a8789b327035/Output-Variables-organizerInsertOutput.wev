@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_3e77ebf4_d4d2_4121_bb41_a8789b327035_Output_Variables_organizerInsertOutput = {|
+  affectedRows?: Number, 
+  generatedKeys?: { _?: Number }
+|} {"typeAlias": "StatementResult",
+"typeId": "org.mule.extension.db.api.StatementResult"}
+

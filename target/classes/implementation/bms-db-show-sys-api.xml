@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="addShowFlow" doc:id="075c2968-832a-4703-9b2e-883237928081" >
+		<logger level="INFO" doc:name="INFO: Inserting Show Details" doc:id="c565356f-2e37-4cc8-a139-da1c6825ef53" message="Inserting Show Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="04700936-9602-4015-a303-5c6447438b2c" >
+			<db:insert doc:name="Insert Show Details" doc:id="abc3d5cb-c35e-4dcc-9015-1ba6c4b9013d" config-ref="Database_Config" target="showInsertOutput" autoGenerateKeys="true">
+			<db:sql><![CDATA[insert into show(Show_Name ,Show_Date ,Show_Start_Time ,Show_End_Time ,Price ,Seats ,Genre ,Active_Date ,Address_Line_1 ,Address_Line_2 ,City ,State ,Country ,Pincode ,Org_Id )
+values(:showName,:showDate,:showStartTime,:showEndTime,:price,:seats,:genre,:activeDate,:addressLine1,:addressline2,:city,:state,:country,:pincode,:orgId)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showName: payload.Show_Name,
+	showDate: payload.Show_Date,
+	showStartTime: payload.Show_Start_Time,
+	showEndTime: payload.Show_End_Time,
+	price: payload.Price,
+	seats: payload.Seats,
+	genre: payload.Genre,
+	activeDate: payload.Active_Date,
+	addressLine1: payload.Address_Line_1,
+	addressline2: payload.Address_Line_2,
+	city: payload.City,
+	state: payload.State,
+	country: payload.Country,
+	pincode: payload.Pincode,
+	orgId: payload.Org_Id
+}]]]></db:input-parameters>
+		</db:insert>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Inserted Show Details" doc:id="bf0e2050-f93a-41b3-9513-6559d6b8f9df" message="Inserted Show Details"/>
+		<ee:transform doc:name="Response With Show Id" doc:id="7cedd828-4c69-42be-88f5-e29bba1d3853">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "show booked successfully",
+	Show_Id: vars.showInsertOutput.generatedKeys.SHOW_ID
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getShowByIdFlow" doc:id="c54391e4-9739-4aec-bcc9-fffce498eb62" >
+		<logger level="INFO" doc:name="INFO: Fetching Show Detalis" doc:id="d23676a0-042f-4e17-88cf-85a7c8a9d9dc" message="Fetching Show Detalis"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="7c218c5f-1a6a-44fa-b290-2aea8a6ca218" >
+			<db:select doc:name="Get Show Details By Id" doc:id="1d569e35-6266-46d5-9546-df56dc863870" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from show where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: vars.showId
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Show Details" doc:id="02a7527b-16a7-4767-9987-e6d145042958" message="Fetched Show Details"/>
+		<ee:transform doc:name="Java to Json" doc:id="470fe036-3b14-4c40-a5ea-36a9ae090853">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="deleteShowByIdFlow" doc:id="c6eda2bb-9a8e-418f-acf8-f2f505c4a82c" >
+		<logger level="INFO" doc:name="INFO: Deleting Show Details" doc:id="5675d9fe-5820-47b4-ba4f-abf6fa324ae0" message="Deleting Show Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="9000c9c2-fe76-4de3-aca9-155b43fe0bc7" >
+			<db:delete doc:name="Delete Show Details By Id" doc:id="9c39a93d-7058-4332-a87e-f0084e4ecafa" config-ref="Database_Config">
+			<db:sql><![CDATA[delete from show where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: vars.showId
+}]]]></db:input-parameters>
+		</db:delete>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Deleted Show Details" doc:id="009fcaa9-f019-4b90-9344-afc0b97dbebc" message="Deleted Show Details"/>
+		<ee:transform doc:name="Delete Successful Response" doc:id="2206370d-1c3c-4e13-a085-ab15bbd3afe2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "booking deleted successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="updateShowByIdFlow" doc:id="bf4faf80-c962-4663-9fa2-f6b22b0f679f" >
+		<logger level="INFO" doc:name="INFO: Updating Show Details" doc:id="9b649885-db7e-4e23-b69e-559969d0aa09" message="Updating Show Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="2046d4d3-bed8-4fdf-ab3d-52cfc116d3fe" >
+			<db:update doc:name="Update Show Details By Id" doc:id="c9810def-4441-43ef-8088-1bd6bc5d1616" config-ref="Database_Config">
+			<db:sql><![CDATA[update show set Show_Name=:showName ,Show_Date=:showDate ,Show_Start_Time=:showStartTime ,Show_End_Time=:showEndTime ,Price=:price ,Seats=:seats ,Genre=:genre ,Active_Date=:activeDate ,Address_Line_1=:addressLine1 ,Address_Line_2=:addressline2 ,City=:city ,State=:state ,Country=:country ,Pincode=:pincode ,Org_Id=:orgId where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: vars.showId,
+	showName: payload.Show_Name,
+	showDate: payload.Show_Date,
+	showStartTime: payload.Show_Start_Time,
+	showEndTime: payload.Show_End_Time,
+	price: payload.Price,
+	seats: payload.Seats,
+	genre: payload.Genre,
+	activeDate: payload.Active_Date,
+	addressLine1: payload.Address_Line_1,
+	addressline2: payload.Address_Line_2,
+	city: payload.City,
+	state: payload.State,
+	country: payload.Country,
+	pincode: payload.Pincode,
+	orgId: payload.Org_Id
+}]]]></db:input-parameters>
+		</db:update>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Updated Show Details" doc:id="b5431930-6148-43cf-b567-f1027cc7801a" message="Updated Show Details"/>
+		<ee:transform doc:name="Update Successful Response" doc:id="cc1ae489-08f6-4bfe-a8cb-61956fb786e2">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	message: "show updated successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getSoldTicketCountByShowIdFlow" doc:id="dc058e3d-ca26-4306-bacf-dc7234d0187c" >
+		<logger level="INFO" doc:name="INFO: Fetching Sold Tickets Count" doc:id="21823f19-7559-4635-b01e-5c7dccef7cf9" message="Fetching Sold Tickets Count"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="e287765d-2dc5-41d7-9713-685416df303c" >
+			<db:select doc:name="Get Sold Tickets Count By Show Id" doc:id="e5cdf213-f694-4b36-bc20-b96519bf6e13" config-ref="Database_Config">
+			<db:sql><![CDATA[select count(Booking_Id) as Sold_Count from booking where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: attributes.queryParams.Show_Id,
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Sold Tickets Count" doc:id="2d1aae75-5cb5-4960-aad5-313a7d9e8080" message="Fetched Sold Tickets Count"/>
+		<ee:transform doc:name="Java to Json" doc:id="9b6dec08-6f8d-4427-8c16-23fc5495e248">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getTotalSeatCountByShowIdFlow" doc:id="371363c4-b3f3-4adb-9017-69d01403eae0" >
+		<logger level="INFO" doc:name="INFO: Fetching Total Seat Count" doc:id="1b15eed1-8ad9-4771-9439-722bb9434533" message="Fetching Total Seat Count"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="1f317274-93f3-4c89-ad19-47677bfeb4a4" >
+			<db:select doc:name="Get Total Seat Count By Show Id" doc:id="008ad526-4231-4956-81d8-9a484d236697" config-ref="Database_Config">
+			<db:sql><![CDATA[select Seats from show where Show_Id=:showId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	showId: attributes.queryParams.Show_Id,
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Total Seat Count" doc:id="903c2f41-f9fa-41f0-b290-71a23015b95b" message="Fetched Total Seat Count"/>
+		<ee:transform doc:name="Java to Json" doc:id="4417a5db-499e-4fda-9e03-01f3d28e8d4e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getUpcommingShows" doc:id="32582e91-e1dc-44cf-ab1c-97a7715e8888" >
+		<logger level="INFO" doc:name="INFO: Fetching Upcoming Show Detalis" doc:id="b1c4c9e6-a071-4c81-ba25-c06086c849c0" message="Fetching Upcoming  Show Detalis" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="af6bf6f7-6d36-4919-84c7-eb0cfeb0a144" >
+			<db:select doc:name="Get Upcoming Show Details" doc:id="e0ccad9f-75ad-4fe6-aaf4-5ab6dd5ca854" config-ref="Database_Config">
+			<db:sql><![CDATA[select Show_Id from show where Active_Date>=:tomDate]]></db:sql>
+			<db:input-parameters><![CDATA[#[%dw 2.0
+import tomorrow from dw::core::Dates
+output application/json
+---
+{
+	"tomDate": (tomorrow() ++ 'T00:00:00') as DateTime
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Upcoming Show Details" doc:id="08f12a00-f5e3-489d-8e34-bf054746b77c" message="Fetched Show Details" />
+		<ee:transform doc:name="Java to Json" doc:id="c161f442-dc25-4d46-b971-aa8ff2f4fc45" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

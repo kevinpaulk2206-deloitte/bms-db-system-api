@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<error-handler name="globalError_Handler" doc:id="ee5a69f0-0e6f-436a-bf2c-197537974904" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="903ce356-26d0-43bd-9a57-3c05bfbfa70c" type="DB:CONNECTIVITY,DB:RETRY_EXHAUSTED">
+			<set-variable value="500" doc:name="httpStatus 500" doc:id="33a75f73-6661-4479-bce3-b34f2ebab69b" variableName="httpStatus"/>
+			<set-payload value='#[{message:"database connectivity error"}]' doc:name="error message" doc:id="333a8753-7925-43ae-b7ea-fd7c736ce5ab" />
+		
+</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5f463ed4-e8c3-476f-a2cd-c547c5398d14" type="DB:QUERY_EXECUTION,DB:BAD_SQL_SYNTAX">
+			<set-variable value="400" doc:name="httpStatus 400" doc:id="9642238d-a310-4150-bcce-46966923cd2e" variableName="httpStatus"/>
+			<set-payload value='#[{message:"bad request error"}]' doc:name="error message" doc:id="7498c7ec-609e-4ea3-af1b-52881daa2aa6" />
+		
+</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="26b3496a-9576-461d-b69d-0ce3a685c413" type="ANY">
+			<set-variable value="400" doc:name="httpStatus 400" doc:id="875b3604-7832-4f55-a785-f4db102f8967" variableName="httpStatus"/>
+			<set-payload value='#[{message:"unknown error"}]' doc:name="error message" doc:id="b34aa8b0-c473-40bb-90d1-28454207bcf9" />
+		</on-error-propagate>
+	</error-handler>
+</mule>

@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <apikit:config name="firstsystemapi-config" api="resource::ddbd4ad5-6f2a-4406-8403-dd1be00842b9:firstsystemapi:1.0.26:raml:zip:firstsystemapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <flow name="firstsystemapi-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="firstsystemapi-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="put:\organizer-by-id:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="3e74b208-0ef9-48ab-8445-d5ddf7f042d5" name="putOrganizerByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="put:\user:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="647e062f-e78f-4240-82dc-bfe65a21309f" name="updateUserDetailsFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="delete:\coupon:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="7453e1e9-fb5d-412f-baef-0f694a084fab" name="deleteCouponsByShowIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="delete:\organizer-by-id:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="aad1f88d-4ae7-4930-a6ce-05645a142353" name="deleteOrgainzerByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="delete:\user:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="b9db9ccf-5230-45e0-a2b0-68337407ea7a" name="deleteUserFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\Organizers:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="cade405a-2d44-4f84-874e-4c7e7756ce2a" name="getAllOrganizersDetailsFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\coupon:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="faf1ac12-2158-48e2-96a9-1ccca2e90330" name="getAllCouponsByShowIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\organizer-by-id:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="affcefd2-a2e7-4fd1-9626-07e06bad4a65" name="getOrganizerByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\sold-tickets:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="31d8e399-8985-42f5-bbdd-24a2c91a3474" name="getSoldTicketCountByShowIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\user:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="4e34d141-cceb-434d-9403-04858007bba3" name="getUserbyIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\user-interest:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="b3410200-3d54-46bd-bbf2-90f186566669" name="getIntrestByUserIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\coupon:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="8facad82-52ad-4526-89af-3e5971093025" name="postCouponsFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\show:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="198475e6-6f5d-492d-9fdd-f243a478058e" name="addShowFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\user-interest:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="28a38164-a63d-44fb-924e-a7bf04854a67" name="postInterestFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\user:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="5816de20-012f-4afc-bc18-bdaccfe13203" name="postUserFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\user\shows:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="287fa145-9ea4-4ac9-88ee-bceab1e47b27" name="viewUpcommingShowsFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\total-tickets:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="ab5374a1-d8c8-435f-b808-5887bbc5068b" name="getTotalSeatCountByShowIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="put:\show\(show-id):application\json:firstsystemapi-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="showId"><![CDATA[attributes.uriParams.'show-id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="f417155f-0d01-4373-89fb-d14b9a881949" name="updateShowByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="delete:\show\(show-id):firstsystemapi-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="showId"><![CDATA[attributes.uriParams.'show-id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="7cdff1f8-b384-49e3-949a-a6f93147a448" name="deleteShowByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\booking:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="86414553-a04e-45ca-951e-47521cd65756" name="getBookingByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\organizers\shows:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="25f9932e-6750-4000-9020-6d09f57c056c" name="getAllShowForOrganizerFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\show\(show-id):firstsystemapi-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="showId"><![CDATA[attributes.uriParams.'show-id']]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <flow-ref doc:name="Flow Reference" doc:id="bb75df66-dbf9-402d-ac95-7b613793e348" name="getShowByIdFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\booking:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="ecf47cc8-d3d4-40ff-9426-e660f74de2d0" name="postBookingFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\organizers:application\json:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="bb290d7e-da3a-478f-b22c-b30fbab9891d" name="postOrganizerFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\phone\organizers:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="f45d1669-8fd8-46d5-a97e-5e61a6d009ec" name="getOrganizersPhoneNumberFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\show\user-phone:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="64d5c443-8da7-49c7-a320-955158ebb97e" name="getBookingUsersPhoneNumberFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\phone\users:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="9f6f4c15-ddfd-49da-8555-b07035632330" name="getUsersPhoneNumberFlow" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\admin\organizers:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="d8c35793-a281-41ec-a7f4-ed50ef038d46" name="getAllOrganizersDetailsFlow" />
+    </flow>
+    <flow name="get:\admin\report:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="7a8dce1d-0baa-48e4-b4c3-3f5b34cf935c" name="getReportFlow" />
+    </flow>
+    <flow name="get:\admin\shows:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="0862defd-ee3f-46c9-aa8b-b6268ca0d8b8" name="getAllShowsDetailsFlow" />
+    </flow>
+    <flow name="get:\admin\users:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="3a7ce9f9-c509-4d1a-8404-3bf6ceee4f28" name="getAllUsersDetailsFlow" />
+    </flow>
+    <flow name="get:\show\upcomming:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="492ff256-1263-4770-890b-2f7c371e011e" name="getUpcommingShows" />
+    </flow>
+    <flow name="get:\authorize\admin:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="9b6376c9-a86c-47d8-9d0d-b70086cd26cc" name="adminAuthFlow" />
+    </flow>
+    <flow name="get:\authorize\organizer:firstsystemapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="e252c8fb-4556-40c6-a4e5-ca8c75398556" name="organizerAuthFlow" />
+    </flow>
+    <flow name="get:\authorize\user:firstsystemapi-config">
+		<flow-ref doc:name="Flow Reference" doc:id="5df8eb67-9959-4eef-9cae-31ffaa435a52" name="userAuthFlow" />
+    </flow>
+</mule>

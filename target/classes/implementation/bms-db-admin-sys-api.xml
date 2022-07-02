@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="getUsersPhoneNumberFlow" doc:id="fbd4b373-3c4c-44f8-b094-6a4a131e5a2b" >
+		<logger level="INFO" doc:name="INFO: Fetching All Users Emails" doc:id="6b651826-cd51-43d2-9810-45f56143be3d" message="Fetching All Users Emails"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="022f244f-c47d-47fc-b3c7-70099042852a" >
+			<db:select doc:name="Get All Users Phone Number" doc:id="12293215-81af-4fd5-835c-f4bc93da9858" config-ref="Database_Config">
+			<db:sql><![CDATA[select Phone_No from users]]></db:sql>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched All Users Emails" doc:id="becebb93-fa5a-45f2-9ca8-3fea9f63ee90" message="Fetched All Users Emails"/>
+		<ee:transform doc:name="Java to Json" doc:id="832ee5ae-b072-4397-b713-eddfc1b15da4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getOrganizersPhoneNumberFlow" doc:id="c2028c96-2f26-494f-9b68-ebccd38bfbb3" >
+		<logger level="INFO" doc:name="INFO: Fetching All Organizers Emails" doc:id="c0eb5e5a-efd4-4b78-9e70-c27c5a2a3aae" message="Fetching All Organizers Emails" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="bdf3fe3a-0767-4ade-b4db-d6e69eed0bbc" >
+			<db:select doc:name="Get All Organizers Emails" doc:id="6f0cab3b-d2e5-450c-b5eb-711d8399f658" config-ref="Database_Config">
+			<db:sql><![CDATA[select Phone_No from organizer]]></db:sql>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched All Organizers Emails" doc:id="f35b22d0-428d-42a5-8556-553a5fc88eb4" message="Fetched All Organizers Emails" />
+		<ee:transform doc:name="Java to Json" doc:id="b633e79c-e246-4c7d-a346-a225747cdd48" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getReportFlow" doc:id="2c19fcbb-29f7-44b9-b2db-71dfe28ba61a" >
+		<logger level="INFO" doc:name="INFO: Fetching Report Details" doc:id="9937d2c4-c316-45d9-94b4-b86d9ae018b3" message="etching Report Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="2e110282-4efc-48bb-9386-b7d383218e14" >
+			<db:select doc:name="Get Show Details With Tickets Sold" doc:id="d5761787-3a0c-4571-b1bf-62fc61714ba1" config-ref="Database_Config">
+			<db:sql><![CDATA[select s.Show_Id , s.Show_Name , count(b.Booking_Id) as Tickets_Sold from show s , booking b where s.Show_Id=b.Show_Id and b.DATE_TIME >= :fromDateTime and b.DATE_TIME <= :toDateTime group by s.Show_Id , s.Show_Name  ]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	fromDateTime: (attributes.queryParams.fromDate ++ "T00:00:00"),
+	toDateTime: (attributes.queryParams.toDate ++ "T00:00:00" )
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Report Details" doc:id="85e33009-4cca-4259-95b0-a0a2751632d8" message="Fetched Report Details"/>
+		<ee:transform doc:name="Java to Json" doc:id="a9238aac-6c64-40c0-a0aa-b9aad3504591" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getAllShowsDetailsFlow" doc:id="d9a3da40-634b-4211-b57c-0970ab085881" >
+		<logger level="INFO" doc:name="INFO: Fetching All ShowsEmails" doc:id="8916f9f8-f465-4eb6-92b3-af7c5668a3f1" message="Fetching All ShowsEmails" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="05f47e9b-2e3c-4958-a254-47d1c3590327" >
+			<db:select doc:name="Get All Shows Details" doc:id="4a747fa9-43f0-4e1f-a5fc-482c45935015" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from show where Active_Date >= :fromDateTime and Active_Date <= :toDateTime]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	fromDateTime: (attributes.queryParams.fromDate ++ "T00:00:00") as Date,
+	toDateTime: (attributes.queryParams.toDate ++ "T00:00:00" ) as Date
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched All ShowsEmails" doc:id="63ee8e58-44f3-42e0-a681-0f5a45e950ab" message="Fetched All Shows Emails" />
+		<ee:transform doc:name="Java to Json" doc:id="768e26fc-2711-4c2e-af5a-fde57715800e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

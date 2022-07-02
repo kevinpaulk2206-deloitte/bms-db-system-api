@@ -1,0 +1,8 @@
+%dw 2.0
+
+type auto_075c2968_832a_4703_9b2e_883237928081_Output_Variables_showInsertOutput = {|
+  affectedRows?: Number, 
+  generatedKeys?: { _?: Number }
+|} {"typeAlias": "StatementResult",
+"typeId": "org.mule.extension.db.api.StatementResult"}
+

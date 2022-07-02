@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="postUserFlow" doc:id="e05e0d9c-3732-419d-8e20-a0dbbfdbd0de" >
+		<logger level="INFO" doc:name="INFO: Adding User Details" doc:id="6c51cf76-7da6-485b-9431-50f2ce4c76cd" message="Adding User Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="167712b8-5209-410c-b830-c8142d692a5d" >
+			<db:insert doc:name="Add User" doc:id="a08a5c7f-934a-4f6f-bdf7-367448dceaa5" config-ref="Database_Config">
+			<db:sql><![CDATA[insert into users(Name ,Password ,Email ,Gender ,Address ,Phone_No) values(:name, :password , :email, :gender, :address , :phone_no)
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	name: payload.Name,
+	password: payload.Password,
+	email: payload.Email,
+	gender: payload.Gender,
+	address: payload.Address,
+	phone_no: payload.Phone_No
+}]]]></db:input-parameters>
+		</db:insert>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Added User Details" doc:id="fcb02eea-6daf-430f-818b-fae0d0989fa8" message="#[payload]" />
+		<ee:transform doc:name="User Added" doc:id="a160ad6f-8b77-4a94-9ba5-82102ad95a0c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": 'User Added Successfully'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getAllUsersDetailsFlow" doc:id="64aa44f3-55c5-4abf-8651-ef16d1423d0f" >
+		<logger level="INFO" doc:name="INFO: Fetching User Details" doc:id="78f6251d-18eb-4b7d-9500-7c78936a8714" message="Fetching User Details" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="cbd08a92-e53c-4463-9845-15409f1be3ca" >
+			<db:select doc:name="Get User Details" doc:id="26422a15-a539-4fda-96a6-fea525942df7" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from users]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched User Details" doc:id="68de5ae0-48de-4f36-8aa2-4a16626c1b92" message="#[payload]" />
+		<ee:transform doc:name="Java to Json" doc:id="4a05847f-acb2-4a44-8408-09ca1375d849" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+	payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="getUserbyIdFlow" doc:id="85e54870-f483-4015-ac4a-36f4f5261ba8" >
+		<logger level="INFO" doc:name="INFO: Fetching User Details" doc:id="f45eebe5-155b-498e-a378-4a1df5f44d49" message="Fetching User Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="cbd86ef3-a575-4717-aef6-055d8b47752d" >
+			<db:select doc:name="Get User Details" doc:id="455d5501-7dc5-4286-9cde-563b40542b8f" config-ref="Database_Config">
+			<db:sql><![CDATA[select * from users where User_Id = :userId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched User Details" doc:id="0f92df5a-0f7d-481f-b1c3-2410115f9a13" message="#[payload]" />
+		<ee:transform doc:name="Java to Json" doc:id="3af68e9a-5006-4075-b948-554c737897cc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+	payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="deleteUserFlow" doc:id="9f4bc432-51e1-4625-9b66-3a8b28789884" >
+		<logger level="INFO" doc:name="INFO: Deleting User" doc:id="db6f3a07-ace2-4465-bfa4-7e435ecc71c0" message="Deleting User"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="bc639824-972f-4a01-9c7e-0b1d1ada0f16" >
+			<db:delete doc:name="Delete User" doc:id="499acaa7-04cf-47e4-aa9e-8e131004c300" config-ref="Database_Config">
+			<db:sql><![CDATA[delete from users where User_Id=:userId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId
+}]]]></db:input-parameters>
+		</db:delete>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Deleted User" doc:id="b4095c22-9865-4f4c-9bb0-4837bb15b9c6" message="#[payload]" />
+		<ee:transform doc:name="User Deleted" doc:id="a38274de-8caf-47d7-951a-1a6b819fd520" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": 'user deleted successfully'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="updateUserDetailsFlow" doc:id="65ddf753-c749-4b89-b229-9e7888bd688f" >
+		<logger level="INFO" doc:name="INFO: Updating User Details" doc:id="17efe327-ee90-40c4-90ed-178062c1bf3e" message="Updating User Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="a6e63748-701a-46a6-8c79-8c456cb793fb" >
+			<db:update doc:name="Update User Details" doc:id="0ae8a4bb-bcb0-4325-ae06-56540c95b238" config-ref="Database_Config">
+			<db:sql><![CDATA[update users set Name=:name, Password=:password ,Email=:email,Address=:address,Phone_No=:phoneNo where User_Id=:userId]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	userId: attributes.queryParams.userId,
+	name: payload.Name,
+	password: payload.Password,
+	email: payload.Email,
+	phoneNo: payload.Phone_No,
+	address: payload.Address
+}]]]></db:input-parameters>
+		</db:update>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Updated User Details" doc:id="b4a03515-5a00-43b1-a8b6-d1e093f8cac6" message="#[payload]" />
+		<ee:transform doc:name="User Details Updated" doc:id="1f2b7e63-1c5f-45ce-9d85-57a0bc133489" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": 'user details updated successfully'
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="viewUpcommingShowsFlow" doc:id="df632c89-c77c-4a74-8a20-fb40ba93b11c" >
+		<logger level="INFO" doc:name="INFO: Fetching Upcomming Shows" doc:id="7734cb21-5ab6-4d5c-adb4-214fbd712b4b" message="Fetching Upcomming Shows"/>
+		<ee:transform doc:name="Filter And Pagination" doc:id="83cd039f-161d-42ef-90f7-d2b7573ae864" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="page" ><![CDATA[%dw 2.0
+output application/java
+---
+' limit '  ++ (attributes.queryParams.pageSize as String default '10' )++ ' offset ' ++((((attributes.queryParams.page as Number) - 1) default 0) * (attributes.queryParams.pageSize as Number default 10))]]></ee:set-variable>
+				<ee:set-variable variableName="wheres" ><![CDATA[%dw 2.0
+output application/java
+var arr = [
+if (attributes.queryParams.name != null) "Show_Name='" ++ attributes.queryParams.name as String ++ "'" else '',
+if (attributes.queryParams.city != null) "City='" ++ attributes.queryParams.city as String ++ "'" else '',
+if (attributes.queryParams.genre != null) "Genre='" ++ attributes.queryParams.genre as String ++ "'" else '',
+if (attributes.queryParams.minPrice != null) "Price>='" ++ attributes.queryParams.minPrice as Number ++ "'" else '',
+if (attributes.queryParams.maxPrice != null) "Price<='" ++ attributes.queryParams.maxPrice as Number ++ "'" else '',
+if (attributes.queryParams.fromDate != null) "Active_Date>='" ++ attributes.queryParams.fromDate as String ++ "'" else '',
+if (attributes.queryParams.toDate != null) "Active_Date<='" ++ attributes.queryParams.toDate as String ++ "'" else '',
+] filter ($ != '')
+---
+if (sizeOf(arr)>0) (' where ' ++ (arr joinBy " and ")) else ""]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="2bc80e51-6eba-45ec-b431-5c4d6d8952c0" >
+			<db:select doc:name="Get Upcomming Shows" doc:id="7a04a811-dd6e-41e9-bd25-973ad7c78598" config-ref="Database_Config">
+			<db:sql><![CDATA[#["select * from show " ++ vars.wheres ++ vars.page]]]></db:sql>
+		</db:select>
+		</until-successful>
+		<logger level="INFO" doc:name="INFO: Fetched Upcomming Shows" doc:id="420b6dea-a296-48a7-962a-171f01c9cad9" message="#[payload]"/>
+		<ee:transform doc:name="Java to Json" doc:id="3fe8a9f5-d950-4cbe-a7e1-fc1a8304fc44" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+ payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

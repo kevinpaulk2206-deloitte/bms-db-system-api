@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="userAuthFlow" doc:id="de664fea-4d56-49e0-88db-7c78c8c7e34f" >
+		<logger level="INFO" doc:name="INFO: Fetch User Details" doc:id="19ab4c96-80fa-4836-a9b6-208bf3aa6922" message="Fetch User Details"/>
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="20d1de89-a5ee-4f4f-b318-caf01fd60754" >
+			<db:select doc:name="Fetch User Details" doc:id="0386ab08-333b-4de7-aa9b-d155b23611fe" config-ref="Database_Config">
+			<db:sql><![CDATA[select User_Id from users where User_Id=:userId and Password=:password]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"userId": attributes.queryParams.userId,
+	"password": attributes.queryParams.password
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="d97274e0-d984-43d0-afa6-8e2a9663456b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="organizerAuthFlow" doc:id="5e5f0c4c-ba91-457b-b6c0-3a1a9460823f" >
+		<logger level="INFO" doc:name="INFO: Fetch Organizer Details" doc:id="f95053a3-d1e2-4caf-a69e-340c3ba2bef2" message="Fetch Organizer  Details" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="caa4f22a-28c8-46e9-aee5-cf6c34ceec01" >
+			<db:select doc:name="Fetch Organizer Details" doc:id="fe2264b2-465c-4dd9-a34a-8f614e1d94ac" config-ref="Database_Config">
+			<db:sql><![CDATA[select Org_Id from organizer where Org_Id=:orgId and Password=:password]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"orgId": attributes.queryParams.orgId,
+	"password": attributes.queryParams.password
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="94fda3f8-6dac-4d3e-aadf-c259f1ff6675" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="adminAuthFlow" doc:id="f262621b-6889-477c-b025-f2a4f04d9654" >
+		<logger level="INFO" doc:name="INFO: Fetch admin Details" doc:id="c29fe922-dacc-431b-af36-4677a8f79628" message="Fetch admin  Details" />
+		<until-successful maxRetries="5" doc:name="Until Successful" doc:id="63512441-1dae-42d9-bd18-4b9fc102cbf4" >
+			<db:select doc:name="Fetch admin Details" doc:id="bcfbf437-ac73-4fab-8bbf-95c6fab179aa" config-ref="Database_Config">
+			<db:sql><![CDATA[select Admin_Id from admin where Admin_Id=:adminId and Password=:password]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	"adminId": attributes.queryParams.adminId,
+	"password": attributes.queryParams.password
+}]]]></db:input-parameters>
+		</db:select>
+		</until-successful>
+		<ee:transform doc:name="Transform Message" doc:id="a7811045-21bd-4fdc-9a1e-fa5d5af070dc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload[0]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

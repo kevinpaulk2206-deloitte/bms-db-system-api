@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_32582e91_e1dc_44cf_ab1c_97a7715e8888_Output_Payload = Array<Number>
+

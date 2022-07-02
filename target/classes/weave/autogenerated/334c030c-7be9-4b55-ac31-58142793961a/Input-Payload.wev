@@ -1,0 +1,14 @@
+%dw 2.0
+
+type auto_334c030c_7be9_4b55_ac31_58142793961a_Input_Payload = {
+  dateTime: String, 
+  showId: Number, 
+  discountedPrice: Number, 
+  numberOfTickets: Number, 
+  actualPrice: Number, 
+  couponId: Number, 
+  userId: Number, 
+  bookingId?: Number, 
+  _?: Any
+}
+

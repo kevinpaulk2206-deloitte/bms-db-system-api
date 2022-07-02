@@ -1,0 +1,22 @@
+%dw 2.0
+
+type auto_c54391e4_9739_4aec_bcc9_fffce498eb62_Output_Payload = {
+  Show_Name: String, 
+  Address_Line_1: String, 
+  Address_Line_2: String, 
+  City: String, 
+  Show_Id?: Number, 
+  Show_End_Time: String, 
+  Active_Date: String, 
+  Seats: Number, 
+  Show_Start_Time: String, 
+  Org_Id: Number, 
+  Price: Number, 
+  State: String, 
+  Show_Date: String, 
+  Country: String, 
+  Genre: String, 
+  Pincode: Number, 
+  _?: Any
+}
+
